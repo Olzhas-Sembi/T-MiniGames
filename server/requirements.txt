@@ -1,0 +1,7 @@
+fastapi==0.115.5
+uvicorn==0.32.1
+pydantic==2.5.0
+python-multipart==0.0.6
+websockets==12.0
+feedparser==6.0.10
+aiohttp==3.9.1
