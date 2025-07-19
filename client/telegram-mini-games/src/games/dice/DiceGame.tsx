@@ -40,7 +40,6 @@ interface Player {
 
 const DiceGame: React.FC<DiceGameProps> = ({ 
   onBack, 
-  playerName,
   playerId, 
   websocket,
   roomData 

@@ -1,0 +1,16 @@
+node_modules
+.git
+*.log
+.env*
+.DS_Store
+server/
+telegram_bot/
+client/news-aggregator/
+*.md
+*.docx
+*.pdf
+__pycache__/
+*.pyc
+requirements.txt
+Procfile
+runtime.txt

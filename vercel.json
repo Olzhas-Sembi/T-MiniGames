@@ -1,16 +1,10 @@
 {
-  "builds": [
+  "buildCommand": "cd client/telegram-mini-games && npm run build",
+  "outputDirectory": "client/telegram-mini-games/dist",
+  "rewrites": [
     {
-      "src": "client/telegram-mini-games/package.json",
-      "use": "@vercel/static-build"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "buildCommand": "cd client/telegram-mini-games && npm install && npm run build",
-  "outputDirectory": "client/telegram-mini-games/dist"
+  ]
 }
