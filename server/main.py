@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import json
 import asyncio
 import logging
+import os
 from typing import Dict, List
 from server.models import (
     CreateRoomRequest, RoomJoinRequest, PlayerActionRequest, 
@@ -24,7 +25,8 @@ app.add_middleware(
         "http://localhost:5174", 
         "http://localhost:5173",
         "https://your-app.vercel.app",  # Production frontend
-        "https://t.me"  # Telegram domain
+        "https://t.me",  # Telegram domain
+        "*"  # Allow all origins for deployment
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -376,4 +378,5 @@ async def get_news_categories():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")

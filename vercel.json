@@ -2,13 +2,13 @@
   "builds": [
     {
       "src": "client/telegram-mini-games/package.json",
-      "use": "@vercel/node"
+      "use": "@vercel/static-build"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "client/telegram-mini-games/$1"
+      "dest": "/index.html"
     }
   ],
   "buildCommand": "cd client/telegram-mini-games && npm install && npm run build",
