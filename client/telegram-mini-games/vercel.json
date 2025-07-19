@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd client/telegram-mini-games && npm run build",
+  "buildCommand": "cd client/telegram-mini-games && npm install && npm run build",
   "outputDirectory": "client/telegram-mini-games/dist",
   "rewrites": [
     {
