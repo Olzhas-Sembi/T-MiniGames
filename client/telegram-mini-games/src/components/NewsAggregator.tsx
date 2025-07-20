@@ -2,17 +2,18 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Clock, TrendingUp } from "lucide-react";
+import { ExternalLink, Clock } from "lucide-react";
 import { baseURL } from '../config';
 
 interface NewsItem {
   id: string;
   title: string;
-  description: string;
-  url: string;
+  text: string;
+  link: string;
   source: string;
-  publishedAt: string;
+  date: string;
   category: string;
+  channel?: string;
   imageUrl?: string;
 }
 
@@ -21,7 +22,7 @@ export const NewsAggregator = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
 
-  const categories = ["all", "gaming", "crypto", "tech", "esports"];
+  const categories = ["all", "gifts", "crypto", "nft", "tech", "general"];
 
   useEffect(() => {
     fetchNews();
@@ -32,7 +33,7 @@ export const NewsAggregator = () => {
       setLoading(true);
       const response = await fetch(`${baseURL}/news?category=${selectedCategory}`);
       const data = await response.json();
-      setNews(data);
+      setNews(data.data); // API возвращает поле data.data
     } catch (error) {
       console.error("Error fetching news:", error);
     } finally {
@@ -53,7 +54,7 @@ export const NewsAggregator = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">Новости</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {categories.map((category) => (
             <Button
               key={category}
@@ -98,19 +99,19 @@ export const NewsAggregator = () => {
                   <Badge variant="secondary">{item.source}</Badge>
                   <div className="flex items-center text-xs text-muted-foreground">
                     <Clock className="w-3 h-3 mr-1" />
-                    {formatDate(item.publishedAt)}
+                    {formatDate(item.date)}
                   </div>
                 </div>
                 <CardTitle className="text-lg line-clamp-2">{item.title}</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-                  {item.description}
+                  {item.text}
                 </p>
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => window.open(item.url, '_blank')}
+                  onClick={() => window.open(item.link, '_blank')}
                   className="w-full"
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />

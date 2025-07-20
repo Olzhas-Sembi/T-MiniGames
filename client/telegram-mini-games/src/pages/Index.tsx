@@ -137,7 +137,7 @@ const Index = () => {
             </Card>
           </div>
         </div>
-        < NewsAggregator />
+        
         {/* Games Section */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
@@ -158,7 +158,7 @@ const Index = () => {
             ))}
           </div>
         </div>
-
+        < NewsAggregator />
         {/* Features Section */}
         <Card className="game-card mt-12">
           <CardContent className="p-8">

@@ -29,7 +29,8 @@ app.add_middleware(
         "http://localhost:5173",
         "http://localhost:8080",
         "http://localhost:8081",
-        "https://t-mini-games-nsq3kbzi2-beksh0800s-projects.vercel.app/",  # Production frontend
+        "https://t-mini-games-nsq3kbzi2-beksh0800s-projects.vercel.app/",
+        "https://t-mini-games-mdxyoc3dx-beksh0800s-projects.vercel.app",  # Production frontend
         "https://t.me",  # Telegram domain
         "*"  # Allow all origins for deployment
     ],
