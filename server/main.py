@@ -27,7 +27,9 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5174", 
         "http://localhost:5173",
-        "https://your-app.vercel.app",  # Production frontend
+        "http://localhost:8080",
+        "http://localhost:8081",
+        "https://t-mini-games-nsq3kbzi2-beksh0800s-projects.vercel.app/",  # Production frontend
         "https://t.me",  # Telegram domain
         "*"  # Allow all origins for deployment
     ],

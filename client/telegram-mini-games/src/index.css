@@ -2,192 +2,132 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Telegram theme variables */
-:root {
-  --tg-bg-color: #ffffff;
-  --tg-text-color: #000000;
-  --tg-button-color: #2481cc;
-  --tg-button-text-color: #ffffff;
-}
-
-/* Telegram theme integration */
-.telegram-dark {
-  --tg-bg-color: #1a1a1a;
-  --tg-text-color: #ffffff;
-  --tg-button-color: #2481cc;
-  --tg-button-text-color: #ffffff;
-}
-
-/* Dice game animations */
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-/* Glass morphism effects */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Custom shadows */
-.shadow-3xl {
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-}
-
-/* Pulse animation */
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(255, 255, 255, 0.6);
-  }
-}
-
-.telegram-light {
-  --tg-bg-color: #ffffff;
-  --tg-text-color: #000000;
-  --tg-button-color: #2481cc;
-  --tg-button-text-color: #ffffff;
-}
-
-/* Base styles */
+/* Gaming Platform Design System */
 
 @layer base {
-  * {
-    box-sizing: border-box;
+  :root {
+    /* Gaming Dark Theme */
+    --background: 240 12% 8%;
+    --foreground: 240 20% 95%;
+
+    --card: 240 15% 12%;
+    --card-foreground: 240 20% 95%;
+
+    --popover: 240 15% 12%;
+    --popover-foreground: 240 20% 95%;
+
+    /* Gaming Purple/Blue Primary */
+    --primary: 260 80% 65%;
+    --primary-foreground: 240 20% 95%;
+    --primary-glow: 260 90% 75%;
+
+    /* Gaming Secondary */
+    --secondary: 240 15% 18%;
+    --secondary-foreground: 240 20% 95%;
+
+    --muted: 240 12% 15%;
+    --muted-foreground: 240 10% 60%;
+
+    --accent: 280 85% 60%;
+    --accent-foreground: 240 20% 95%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 240 20% 95%;
+
+    --border: 240 15% 20%;
+    --input: 240 15% 18%;
+    --ring: 260 80% 65%;
+
+    --radius: 0.75rem;
+
+    /* Gaming Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(260 80% 65%) 0%, hsl(280 85% 60%) 50%, hsl(300 80% 55%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(240 15% 18%) 0%, hsl(240 15% 22%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(240 15% 12%) 0%, hsl(240 18% 16%) 100%);
+    --gradient-glow: linear-gradient(135deg, hsl(260 90% 75% / 0.2) 0%, hsl(280 90% 70% / 0.1) 100%);
+
+    /* Gaming Shadows */
+    --shadow-glow: 0 0 30px hsl(260 80% 65% / 0.3);
+    --shadow-card: 0 8px 32px hsl(240 20% 5% / 0.5);
+    --shadow-intense: 0 0 50px hsl(260 80% 65% / 0.5);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
-  
-  body {
-    font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
-    line-height: 1.6;
-  }
+
 }
 
 @layer components {
-  .glass-effect {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+  .game-card {
+    @apply bg-card border border-border rounded-lg p-6 transition-all duration-300;
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-card);
   }
-  
-  .gradient-text {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  
-  .card-hover {
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-  
-  .card-hover:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  }
-}
 
-@layer utilities {
-  .line-clamp-3 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
+  .game-card:hover {
+    @apply scale-105;
+    box-shadow: var(--shadow-glow);
   }
-  
-  @keyframes fadeInUp {
+
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+
+  .glow-effect {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes pulse-glow {
     from {
-      opacity: 0;
-      transform: translateY(30px);
+      box-shadow: 0 0 20px hsl(260 80% 65% / 0.3);
     }
     to {
-      opacity: 1;
-      transform: translateY(0);
+      box-shadow: 0 0 40px hsl(260 80% 65% / 0.6);
     }
   }
-  
-  @keyframes pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.7;
-    }
+
+  .floating {
+    animation: floating 3s ease-in-out infinite;
   }
-  
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-6px);
-    }
-  }
-  
-  .animate-fadeInUp {
-    animation: fadeInUp 0.6s ease-out forwards;
-  }
-  
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-  
-  .animate-pulse-slow {
-    animation: pulse 3s ease-in-out infinite;
+
+  @keyframes floating {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
   }
 }
 
-/* Дополнительные стили для улучшения внешнего вида */
-body {
-  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  padding: 0;
-}
-
-/* Анимации */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+@layer base {
+  * {
+    @apply border-border;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  body {
+    @apply bg-background text-foreground;
   }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
-/* Градиентная кнопка */
-.gradient-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.gradient-btn:hover {
-  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-}
-
-/* Кастомные стили для скроллбара */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
 }
