@@ -20,7 +20,10 @@ const Index = () => {
       players: "2-4",
       minBet: 100,
       icon: <Dice1 className="w-8 h-8 text-primary" />,
-      onPlay: () => navigate("/lobby")
+      onPlay: () => {
+        console.log("Navigating to dice game");
+        navigate("/dice-game");
+      }
     },
     {
       title: "Камень-Ножницы-Бумага", 
@@ -28,7 +31,10 @@ const Index = () => {
       players: "2-4",
       minBet: 50,
       icon: <Scissors className="w-8 h-8 text-primary" />,
-      onPlay: () => navigate("/lobby")
+      onPlay: () => {
+        console.log("Navigating to rps game");
+        navigate("/rps-game");
+      }
     },
     {
       title: "Карты 21",
@@ -91,13 +97,17 @@ const Index = () => {
                 Мини-игры с живыми лобби, честной механикой и реальными призами
               </p>
               <div className="flex flex-wrap justify-center gap-4 animate-slide-up">
-                <Button variant="gaming" size="xl" onClick={() => navigate("/lobby")}>
+                <Button variant="gaming" size="xl" onClick={() => document.getElementById('games-section')?.scrollIntoView({ behavior: 'smooth' })}>
                   <Users className="w-5 h-5 mr-2" />
-                  Найти игру
+                  Выбрать игру
                 </Button>
-                <Button variant="outline" size="xl" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                <Button variant="outline" size="xl" className="bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={() => navigate("/lobby")}>
                   <TrendingUp className="w-5 h-5 mr-2" />
-                  Рейтинг
+                  Лобби игр
+                </Button>
+                <Button variant="outline" size="xl" className="bg-purple-500/20 border-purple-400/30 text-white hover:bg-purple-500/30" onClick={() => navigate("/nft")}>
+                  <Package className="w-5 h-5 mr-2" />
+                  NFT Коллекция
                 </Button>
               </div>
             </div>
@@ -115,6 +125,9 @@ const Index = () => {
               totalGames={42}
               wins={28}
               onAddFunds={handleAddFunds}
+              onTonDeposit={() => alert("TON deposit")}
+              onTelegramDeposit={() => alert("Telegram deposit")}
+              transactions={[]}
             />
           </div>
           
@@ -139,7 +152,7 @@ const Index = () => {
         </div>
         
         {/* Games Section */}
-        <div className="space-y-6">
+        <div id="games-section" className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-3xl font-bold text-foreground">Выберите игру</h2>
             <Badge variant="secondary" className="text-sm">

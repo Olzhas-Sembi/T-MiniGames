@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { LobbyCard } from "@/components/LobbyCard";
-import { ArrowLeft, Users, Clock, RefreshCw } from "lucide-react";
+import { ArrowLeft, Users, Clock, RefreshCw, Dice1, Scissors } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Lobby {
@@ -49,6 +50,12 @@ export const GameLobby = () => {
   ]);
 
   const [isSearching, setIsSearching] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+
+  const gameTypes = [
+    { name: "Кубики", icon: <Dice1 className="w-6 h-6" />, minBet: 100 },
+    { name: "Камень-Ножницы-Бумага", icon: <Scissors className="w-6 h-6" />, minBet: 50 }
+  ];
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -61,15 +68,16 @@ export const GameLobby = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const handleCreateLobby = () => {
+  const handleCreateLobby = (gameType: string, minBet: number) => {
     setIsSearching(true);
+    setShowCreateDialog(false);
     setTimeout(() => {
       const newLobby: Lobby = {
         id: `lobby-${Date.now()}`,
-        gameType: "Кубики",
+        gameType: gameType,
         currentPlayers: 1,
         maxPlayers: 4,
-        bet: 100,
+        bet: minBet,
         timeLeft: 60,
         host: "Вы"
       };
@@ -100,21 +108,45 @@ export const GameLobby = () => {
             Назад
           </Button>
           <h1 className="text-3xl font-bold text-foreground">Игровые лобби</h1>
-          <Button 
-            variant="gaming" 
-            onClick={handleCreateLobby}
-            disabled={isSearching}
-            className="min-w-[140px]"
-          >
-            {isSearching ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Поиск...
-              </>
-            ) : (
-              "Создать лобби"
-            )}
-          </Button>
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="gaming" 
+                disabled={isSearching}
+                className="min-w-[140px]"
+              >
+                {isSearching ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Создание...
+                  </>
+                ) : (
+                  "Создать лобби"
+                )}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Выберите игру</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                {gameTypes.map((game) => (
+                  <Button
+                    key={game.name}
+                    variant="outline"
+                    className="h-16 flex items-center justify-start gap-4 p-4"
+                    onClick={() => handleCreateLobby(game.name, game.minBet)}
+                  >
+                    {game.icon}
+                    <div className="text-left">
+                      <div className="font-semibold">{game.name}</div>
+                      <div className="text-sm text-muted-foreground">Мин. ставка: {game.minBet} ⭐</div>
+                    </div>
+                  </Button>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Stats */}
@@ -159,7 +191,13 @@ export const GameLobby = () => {
                 <LobbyCard
                   key={lobby.id}
                   {...lobby}
-                  onJoin={() => handleJoinLobby(lobby.id)}
+                  onJoin={() => {
+                    if (lobby.gameType === "Кубики") {
+                      navigate(`/game/dice/${lobby.id}`);
+                    } else if (lobby.gameType === "Камень-Ножницы-Бумага") {
+                      navigate(`/game/rps/${lobby.id}`);
+                    }
+                  }}
                   className="animate-fade-in"
                 />
               ))}
@@ -171,7 +209,7 @@ export const GameLobby = () => {
                   <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   Нет активных лобби
                 </div>
-                <Button variant="gaming" onClick={handleCreateLobby}>
+                <Button variant="gaming" onClick={() => setShowCreateDialog(true)}>
                   Создать первое лобби
                 </Button>
               </CardContent>

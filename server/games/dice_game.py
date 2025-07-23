@@ -7,14 +7,21 @@ from server.models import Player, DiceResult
 
 class DiceGame:
     """
-    Честная реализация игры в кубики согласно ТЗ:
-    - Два кубика на игрока, побеждает наибольшая сумма
-    - При ничьей - автоматический переброс
-    - Публикация seed и nonce для проверки честности
-    - Призовой фонд делится между победителями
+    Честная реализация игры в кубики (Dice) для 2-4 игроков.
+    - Каждый игрок бросает два кубика, победитель — наибольшая сумма.
+    - При полной ничьей — переброс с новым seed/nonce.
+    - Публикация seed/nonce для проверки честности.
+    - Призовой фонд делится между победителями.
     """
     
     def __init__(self, room_id: str, players: List[Player], bet_amount: int = 100):
+        """
+        Инициализация игры Dice.
+        Args:
+            room_id (str): ID комнаты
+            players (List[Player]): список игроков
+            bet_amount (int): ставка на игрока
+        """
         self.room_id = room_id
         self.players = {p.id: p for p in players}
         self.bet_amount = bet_amount
@@ -59,7 +66,11 @@ class DiceGame:
     
     def player_roll_action(self, player_id: str) -> Dict:
         """
-        Обрабатывает бросок кубиков игрока согласно ТЗ
+        Обрабатывает бросок кубиков игрока.
+        Args:
+            player_id (str): ID игрока
+        Returns:
+            Dict: результат броска и состояние игры
         """
         if self.game_finished or player_id not in self.players:
             return {"success": False, "error": "Invalid game state or player"}
@@ -75,7 +86,7 @@ class DiceGame:
         player = self.players[player_id]
         self.results[player_id] = DiceResult(
             player_id=player_id,
-            player_name=player.name,
+            player_name=player.username,
             dice1=dice1,
             dice2=dice2,
             total=total
@@ -100,7 +111,9 @@ class DiceGame:
     
     def check_round_completion(self) -> Dict:
         """
-        Проверяет завершение раунда и определяет победителей согласно ТЗ
+        Проверяет завершение раунда и определяет победителей.
+        Returns:
+            Dict: информация о завершении, победителях, призах, seed/nonce
         """
         if not all(self.player_actions.values()):
             return {"completed": False}
@@ -147,7 +160,7 @@ class DiceGame:
     
     def prepare_reroll(self) -> None:
         """
-        Подготавливает переброс при ничьей согласно ТЗ
+        Подготавливает переброс при полной ничьей (новый nonce, очистка результатов).
         """
         self.round_number += 1
         self.player_actions = {pid: False for pid in self.players.keys()}
@@ -157,7 +170,9 @@ class DiceGame:
     
     def get_game_state(self) -> Dict:
         """
-        Возвращает текущее состояние игры
+        Возвращает текущее состояние игры (для клиента/серверных уведомлений).
+        Returns:
+            Dict: состояние игры
         """
         return {
             "room_id": self.room_id,
@@ -173,7 +188,13 @@ class DiceGame:
     
     def verify_result(self, player_id: str, expected_dice1: int, expected_dice2: int) -> bool:
         """
-        Позволяет проверить честность результата с помощью публичного seed и nonce
+        Проверяет честность результата броска по публичному seed/nonce.
+        Args:
+            player_id (str): ID игрока
+            expected_dice1 (int): ожидаемый результат кубика 1
+            expected_dice2 (int): ожидаемый результат кубика 2
+        Returns:
+            bool: True если результат честный
         """
         actual_dice1, actual_dice2 = self._generate_dice_for_player(player_id, self.round_number)
         return actual_dice1 == expected_dice1 and actual_dice2 == expected_dice2

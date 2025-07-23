@@ -27,7 +27,7 @@ export const GameCard = ({
   style
 }: GameCardProps) => {
   return (
-    <Card className={cn("game-card group cursor-pointer relative overflow-hidden", className)} style={style}>
+    <Card className={cn("game-card group relative overflow-hidden", className)} style={style}>
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
       <CardHeader className="pb-4">
@@ -67,7 +67,13 @@ export const GameCard = ({
           variant="gaming" 
           size="lg" 
           className="w-full mt-4" 
-          onClick={onPlay}
+          onClick={(e) => {
+            console.log("Button clicked for game:", title);
+            e.stopPropagation();
+            e.preventDefault();
+            console.log("About to call onPlay for:", title);
+            onPlay();
+          }}
           disabled={comingSoon}
         >
           {comingSoon ? "Скоро доступно" : "Играть"}

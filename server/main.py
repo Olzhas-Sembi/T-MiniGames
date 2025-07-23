@@ -1,8 +1,9 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 import json
 import asyncio
 import logging
@@ -14,6 +15,15 @@ from server.models import (
 )
 from server.room_manager import RoomManager
 from server.telegram_news_service import telegram_news_service
+from server.database_sqlite import get_db, User, GameRoom, Transaction, SessionLocal, SessionLocal
+from server.config import settings
+from server.game_api import router as game_router
+from server.games.database_dice import dice_router
+from server.games.database_rps import rps_router
+
+# Импортируем новые API для платежей и NFT
+from server.api.payments import router as payments_router, nft_router
+from server.api.nft import router as nft_api_router
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -24,7 +34,7 @@ app = FastAPI(title="Telegram Mini Games API", version="1.0.0")
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
+    allow_origins=settings.ALLOWED_ORIGINS + [
         "http://localhost:5174", 
         "http://localhost:5173",
         "http://localhost:8080",
@@ -39,12 +49,94 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Подключаем роутеры
+app.include_router(payments_router)  # Платежная система
+app.include_router(nft_router)       # NFT система
+app.include_router(game_router)      # Игровые API
+app.include_router(dice_router)      # Кубики
+app.include_router(rps_router)       # Камень-ножницы-бумага
+
 # Глобальный менеджер комнат
 room_manager = RoomManager()
 
+# Подключение роутеров
+app.include_router(game_router)
+app.include_router(dice_router)
+app.include_router(rps_router)
+app.include_router(payments_router)
+app.include_router(nft_router)
+app.include_router(nft_api_router)
+
 @app.get("/")
 async def root():
-    return {"message": "Telegram Mini Games API", "status": "running"}
+    return {"message": "Telegram Mini Games API", "status": "running", "database": "connected"}
+
+# API для работы с пользователями
+@app.get("/api/users/{telegram_id}")
+async def get_user(telegram_id: str, db: Session = Depends(get_db)):
+    """Получить информацию о пользователе по Telegram ID"""
+    user = db.query(User).filter(User.telegram_id == telegram_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {
+        "id": str(user.id),
+        "telegram_id": user.telegram_id,
+        "username": user.username,
+        "first_name": user.first_name,
+        "stars_balance": user.stars_balance,
+        "total_games": user.total_games,
+        "wins": user.wins
+    }
+
+@app.post("/api/users")
+async def create_user(user_data: dict, db: Session = Depends(get_db)):
+    """Создать нового пользователя"""
+    # Проверяем, не существует ли уже пользователь
+    existing_user = db.query(User).filter(User.telegram_id == user_data["telegram_id"]).first()
+    if existing_user:
+        return {"message": "User already exists", "user_id": str(existing_user.id)}
+    
+    # Создаем нового пользователя
+    new_user = User(
+        telegram_id=user_data["telegram_id"],
+        username=user_data.get("username"),
+        first_name=user_data.get("first_name"),
+        last_name=user_data.get("last_name"),
+        stars_balance=100  # Стартовый баланс
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    return {
+        "message": "User created successfully",
+        "user_id": str(new_user.id),
+        "stars_balance": new_user.stars_balance
+    }
+
+@app.post("/api/users/{telegram_id}/add-stars")
+async def add_stars(telegram_id: str, amount: int, db: Session = Depends(get_db)):
+    """Добавить звезды пользователю (для тестирования)"""
+    user = db.query(User).filter(User.telegram_id == telegram_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.stars_balance += amount
+    
+    # Создать транзакцию
+    transaction = Transaction(
+        user_id=user.id,
+        type="stars_purchase",
+        amount=amount,
+        description=f"Added {amount} stars for testing"
+    )
+    db.add(transaction)
+    db.commit()
+    
+    return {
+        "message": f"Added {amount} stars",
+        "new_balance": user.stars_balance
+    }
 
 @app.get("/health")
 async def health_check():
@@ -54,7 +146,13 @@ async def health_check():
 
 @app.post("/api/rooms/create")
 async def create_room(request: CreateRoomRequest):
-    """Создает новую комнату-лобби"""
+    """
+    Создаёт новую игровую комнату (лобби).
+    Args:
+        request (CreateRoomRequest): параметры создания комнаты
+    Returns:
+        dict: результат создания, данные комнаты и ссылка-приглашение
+    """
     try:
         room = await room_manager.create_room(
             creator_id=request.player_id,
@@ -75,7 +173,13 @@ async def create_room(request: CreateRoomRequest):
 
 @app.post("/api/rooms/join")
 async def join_room(request: RoomJoinRequest):
-    """Присоединение к комнате"""
+    """
+    Присоединяет игрока к комнате.
+    Args:
+        request (RoomJoinRequest): параметры присоединения
+    Returns:
+        dict: результат, данные комнаты
+    """
     try:
         room = await room_manager.join_room(
             player_id=request.player_id,
@@ -97,7 +201,14 @@ async def join_room(request: RoomJoinRequest):
 
 @app.get("/api/rooms/available/{game_type}")
 async def get_available_rooms(game_type: GameType, max_bet: int = None):
-    """Получить доступные комнаты для матчмейкинга"""
+    """
+    Получить доступные комнаты для матчмейкинга.
+    Args:
+        game_type (GameType): тип игры
+        max_bet (int, optional): максимальная ставка
+    Returns:
+        dict: список комнат
+    """
     try:
         rooms = room_manager.get_available_rooms(game_type, max_bet)
         return {
@@ -139,6 +250,12 @@ async def ready_player(room_id: str, player_id: str):
 # WebSocket endpoint для реального времени
 @app.websocket("/ws/{player_id}")
 async def websocket_endpoint(websocket: WebSocket, player_id: str):
+    """
+    WebSocket endpoint для реального времени (игровые события, обновления).
+    Args:
+        websocket (WebSocket): соединение
+        player_id (str): ID игрока
+    """
     await websocket.accept()
     await room_manager.connect_player(player_id, websocket)
     
@@ -154,11 +271,6 @@ async def websocket_endpoint(websocket: WebSocket, player_id: str):
             
             if action_type == "ping":
                 await websocket.send_text(json.dumps({"type": "pong"}))
-            
-            elif action_type == "card_action":
-                # Действие в игре карты 21
-                card_action = message.get("card_action")  # "hit" или "stop"
-                await room_manager.handle_card_action(player_id, card_action)
             
             elif action_type == "dice_action":
                 # Действие в игре кубики
@@ -278,7 +390,14 @@ async def get_room_invite_info(room_id: str):
 
 @app.get("/api/news")
 async def get_news(category: str = "all", limit: int = 50):
-    """Получить новости из всех источников (Telegram + RSS)"""
+    """
+    Получить новости из всех источников (Telegram + RSS).
+    Args:
+        category (str): категория новостей
+        limit (int): лимит записей
+    Returns:
+        dict: новости, источники, категория
+    """
     try:
         news = await telegram_news_service.get_all_news(category=category, limit=limit)
         return {
@@ -381,6 +500,97 @@ async def get_news_categories():
         "status": "success",
         "data": categories
     }
+
+# Dependency для получения сессии
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@app.get("/api/user/balance")
+def get_user_balance(user_id: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return {"success": False, "error": "User not found"}
+    return {"success": True, "balance": user.stars_balance}
+
+@app.get("/api/user/transactions")
+def get_user_transactions(user_id: str, db: Session = Depends(get_db)):
+    txs = db.query(Transaction).filter(Transaction.user_id == user_id).order_by(Transaction.created_at.desc()).limit(20).all()
+    return {"success": True, "transactions": [
+        {
+            "id": str(tx.id),
+            "type": tx.type,
+            "amount": tx.amount,
+            "status": tx.status if hasattr(tx, 'status') else None,
+            "created_at": tx.created_at.isoformat(),
+            "description": tx.description
+        } for tx in txs
+    ]}
+
+@app.post("/api/user/deposit/ton")
+def deposit_ton(user_id: str, amount: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return {"success": False, "error": "User not found"}
+    tx = Transaction(user_id=user_id, type="deposit_ton", amount=amount, status="pending")
+    db.add(tx)
+    db.commit()
+    db.refresh(tx)
+    # Здесь должна быть логика генерации TON-адреса и ожидания платежа
+    return {"success": True, "transaction_id": str(tx.id)}
+
+@app.post("/api/user/deposit/telegram")
+def deposit_telegram(user_id: str, amount: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return {"success": False, "error": "User not found"}
+    tx = Transaction(user_id=user_id, type="deposit_telegram", amount=amount, status="pending")
+    db.add(tx)
+    db.commit()
+    db.refresh(tx)
+    # Здесь должна быть логика генерации Telegram Invoice через бота
+    return {"success": True, "transaction_id": str(tx.id)}
+
+@app.post("/api/user/withdraw/ton")
+def withdraw_ton(user_id: str, amount: int, ton_address: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return {"success": False, "error": "User not found"}
+    if user.stars_balance < amount:
+        return {"success": False, "error": "Insufficient balance"}
+    tx = Transaction(user_id=user_id, type="withdraw_ton", amount=-amount, status="pending", description=f"Withdraw to {ton_address}")
+    db.add(tx)
+    user.stars_balance -= amount
+    db.commit()
+    db.refresh(tx)
+    # Здесь должна быть логика отправки TON через TonAPI
+    return {"success": True, "transaction_id": str(tx.id)}
+
+@app.post("/api/webhook/ton")
+def ton_webhook(user_id: str, amount: int, tx_hash: str, db: Session = Depends(get_db)):
+    tx = db.query(Transaction).filter(Transaction.user_id == user_id, Transaction.ton_transaction_hash == tx_hash, Transaction.status == "pending").first()
+    if not tx:
+        return {"success": False, "error": "Transaction not found"}
+    tx.status = "success"
+    user = db.query(User).filter(User.id == user_id).first()
+    user.stars_balance += amount
+    db.commit()
+    return {"success": True}
+
+@app.post("/api/webhook/telegram_payment")
+def telegram_payment_webhook(user_id: str, amount: int, payment_id: str, db: Session = Depends(get_db)):
+    tx = db.query(Transaction).filter(Transaction.user_id == user_id, Transaction.telegram_payment_id == payment_id, Transaction.status == "pending").first()
+    if not tx:
+        return {"success": False, "error": "Transaction not found"}
+    tx.status = "success"
+    user = db.query(User).filter(User.id == user_id).first()
+    user.stars_balance += amount
+    db.commit()
+    return {"success": True}
 
 if __name__ == "__main__":
     import uvicorn

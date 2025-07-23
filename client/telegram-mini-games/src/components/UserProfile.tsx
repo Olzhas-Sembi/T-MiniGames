@@ -9,6 +9,16 @@ interface UserProfileProps {
   totalGames: number;
   wins: number;
   onAddFunds: () => void;
+  onTonDeposit: () => void;
+  onTelegramDeposit: () => void;
+  transactions: Array<{
+    id: string;
+    type: string;
+    amount: number;
+    status?: string;
+    created_at: string;
+    description?: string;
+  }>;
 }
 
 export const UserProfile = ({ 
@@ -16,7 +26,10 @@ export const UserProfile = ({
   balance, 
   totalGames, 
   wins, 
-  onAddFunds 
+  onAddFunds,
+  onTonDeposit,
+  onTelegramDeposit,
+  transactions
 }: UserProfileProps) => {
   const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 
@@ -43,14 +56,35 @@ export const UserProfile = ({
           </div>
         </div>
 
+        <div className="flex gap-2">
+          <Button 
+            variant="gaming" 
+            size="lg" 
+            className="w-1/2" 
+            onClick={onTonDeposit}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Депозит TON
+          </Button>
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="w-1/2" 
+            onClick={onTelegramDeposit}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Telegram
+          </Button>
+        </div>
+
         <Button 
-          variant="gaming" 
+          variant="secondary" 
           size="lg" 
           className="w-full" 
           onClick={onAddFunds}
         >
           <Plus className="w-4 h-4 mr-2" />
-          Пополнить баланс
+          Пополнить (заглушка)
         </Button>
 
         <div className="grid grid-cols-3 gap-3 text-center">
@@ -75,6 +109,21 @@ export const UserProfile = ({
               {winRate}%
             </Badge>
             <div className="text-xs text-muted-foreground">Винрейт</div>
+          </div>
+        </div>
+
+        {/* История транзакций */}
+        <div className="mt-6">
+          <div className="font-semibold mb-2 text-foreground">История транзакций</div>
+          <div className="max-h-40 overflow-y-auto text-xs divide-y divide-muted-foreground/10">
+            {transactions.length === 0 && <div className="text-muted-foreground">Нет транзакций</div>}
+            {transactions.slice(0, 10).map(tx => (
+              <div key={tx.id} className="flex justify-between py-1 items-center">
+                <span className="font-mono">{tx.type}</span>
+                <span className={tx.amount > 0 ? "text-green-600" : "text-red-600"}>{tx.amount > 0 ? "+" : ""}{tx.amount}</span>
+                <span className="text-muted-foreground">{tx.status || "-"}</span>
+              </div>
+            ))}
           </div>
         </div>
       </CardContent>
