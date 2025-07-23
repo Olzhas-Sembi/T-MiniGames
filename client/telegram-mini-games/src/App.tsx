@@ -8,7 +8,6 @@ import { GameLobby } from "./pages/GameLobby";
 import NotFound from "./pages/NotFound";
 import DiceGamePage from "./pages/DiceGamePage";
 import RPSGamePage from "./pages/RPSGamePage";
-import TestPage from "./pages/TestPage";
 import NFTPage from "./pages/NFTPage";
 import TelegramService from "@/services/telegramService";
 import { useEffect, useState } from "react";
@@ -47,7 +46,6 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/test" element={<TestPage />} />
             <Route path="/lobby" element={<GameLobby />} />
             <Route path="/dice-game" element={<DiceGamePage />} />
             <Route path="/rps-game" element={<RPSGamePage />} />
