@@ -31,7 +31,7 @@ export const NewsAggregator = () => {
   const fetchNews = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${baseURL}/news?category=${selectedCategory}`);
+      const response = await fetch(`${baseURL}/api/news?category=${selectedCategory}`);
       const data = await response.json();
       setNews(data.data); // API возвращает поле data.data
     } catch (error) {
