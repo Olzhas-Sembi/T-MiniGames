@@ -115,7 +115,28 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         setPaymentUrl(data.payment_url);
         // Открываем Telegram для оплаты
         if (data.payment_url) {
-          window.open(data.payment_url, '_blank');
+          // Проверяем, что мы внутри Telegram WebApp
+          const tgWebApp = window.Telegram && window.Telegram.WebApp ? (window.Telegram.WebApp as any) : null;
+          if (tgWebApp && tgWebApp.openInvoice) {
+            let slug = '';
+            if (data.payment_url.startsWith('https://t.me/')) {
+              // Ссылка может быть https://t.me/yourbot?start=pay_invoice_xxx или https://t.me/invoice/xxx
+              if (data.payment_url.includes('?start=')) {
+                slug = data.payment_url.split('?start=')[1];
+              } else if (data.payment_url.includes('/invoice/')) {
+                slug = data.payment_url.split('/invoice/')[1];
+              }
+            }
+            if (slug) {
+              tgWebApp.openInvoice(slug);
+            } else {
+              // fallback: открыть ссылку в новом окне
+              window.open(data.payment_url, '_blank');
+            }
+          } else {
+            // Если не в Telegram WebApp, просто открыть ссылку
+            window.open(data.payment_url, '_blank');
+          }
         }
         onSuccess(amount, 'stars');
       } else {
