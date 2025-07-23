@@ -8,13 +8,16 @@ from aiohttp import web
 import aiohttp
 import os
 from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Конфигурация
-BOT_TOKEN = os.getenv("BOT_TOKEN", "7595580643:AAHpgvzaGErk8IiFUyEIQPhmo35qHaiUdb8")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 WEBHOOK_HOST = os.getenv("WEBHOOK_HOST", "https://t-mini-games.vercel.app/")
 WEBHOOK_PATH = f"/webhook/{BOT_TOKEN}"
 WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"

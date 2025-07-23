@@ -1,25 +1,16 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import { GameLobby } from "./pages/GameLobby";
-import NotFound from "./pages/NotFound";
-import DiceGamePage from "./pages/DiceGamePage";
-import RPSGamePage from "./pages/RPSGamePage";
-import NFTPage from "./pages/NFTPage";
-import TelegramService from "@/services/telegramService";
 import { useEffect, useState } from "react";
-
-const queryClient = new QueryClient();
+import TelegramService from "@/services/telegramService";
 
 const App = () => {
   const [isTelegram, setIsTelegram] = useState<boolean | null>(null);
+  const [hasTelegram, setHasTelegram] = useState(false);
+  const [hasWebApp, setHasWebApp] = useState(false);
 
   useEffect(() => {
     let attempts = 0;
     function checkTelegram() {
+      setHasTelegram(typeof window !== 'undefined' && !!window.Telegram);
+      setHasWebApp(typeof window !== 'undefined' && !!window.Telegram?.WebApp);
       if (TelegramService.isInTelegram()) {
         setIsTelegram(true);
         TelegramService.init();
@@ -33,40 +24,37 @@ const App = () => {
     checkTelegram();
   }, []);
 
-  if (isTelegram === false) {
+  if (isTelegram === null) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", background: "#181818", color: "#fff" }}>
-        <h2 style={{ fontSize: 28, marginBottom: 16 }}>Откройте мини-приложение через Telegram</h2>
-        <p style={{ fontSize: 18, opacity: 0.8 }}>Данное приложение доступно только внутри Telegram Mini Apps.<br/>Пожалуйста, откройте его через Telegram.</p>
+      <div style={{color: '#fff', background: '#181818', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+        <div>Проверка окружения...</div>
+        <div style={{marginTop: 16, fontSize: 14}}>
+          window.Telegram: {String(hasTelegram)}<br/>
+          window.Telegram.WebApp: {String(hasWebApp)}
+        </div>
       </div>
     );
   }
-
-  if (isTelegram === null) {
-    // Можно добавить спиннер или оставить пусто
-    return null;
+  if (isTelegram === false) {
+    return (
+      <div style={{color: '#fff', background: '#181818', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+        <div>Не Telegram Mini App</div>
+        <div style={{marginTop: 16, fontSize: 14}}>
+          window.Telegram: {String(hasTelegram)}<br/>
+          window.Telegram.WebApp: {String(hasWebApp)}
+        </div>
+      </div>
+    );
   }
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/lobby" element={<GameLobby />} />
-            <Route path="/dice-game" element={<DiceGamePage />} />
-            <Route path="/rps-game" element={<RPSGamePage />} />
-            <Route path="/nft" element={<NFTPage />} />
-            <Route path="/game/dice/:lobbyId" element={<DiceGamePage />} />
-            <Route path="/game/rps/:lobbyId" element={<RPSGamePage />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <div style={{color: '#fff', background: '#181818', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+      <div>Приложение успешно определено как Telegram Mini App!</div>
+      <div style={{marginTop: 16, fontSize: 14}}>
+        window.Telegram: {String(hasTelegram)}<br/>
+        window.Telegram.WebApp: {String(hasWebApp)}<br/>
+        isTelegram: {String(isTelegram)}
+      </div>
+    </div>
   );
 };
 
