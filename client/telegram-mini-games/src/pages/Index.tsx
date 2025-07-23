@@ -9,6 +9,26 @@ import { Dice1, Scissors, Square, Gift, Package, Sparkles, Users, TrendingUp } f
 import heroImage from "@/assets/gaming-hero.jpg";
 import { NewsAggregator } from "@/components/NewsAggregator";
 
+const openTelegramInvoice = () => {
+  const tgWebApp = window.Telegram && window.Telegram.WebApp ? (window.Telegram.WebApp as any) : null;
+  if (tgWebApp && tgWebApp.openInvoice) {
+    tgWebApp.openInvoice({
+      slug: '',
+      invoice: {
+        provider_token: 'test',
+        start_parameter: 'test-pay',
+        currency: 'RUB',
+        prices: [{ label: 'Тестовый товар', amount: 10000 }],
+        title: 'Тестовая оплата',
+        description: 'Покупка тестового товара',
+        payload: 'test-payload',
+      }
+    });
+  } else {
+    alert('Оплата доступна только в Telegram Mini App');
+  }
+};
+
 const Index = () => {
   const navigate = useNavigate();
   const [userBalance, setUserBalance] = useState(2500);
@@ -126,7 +146,7 @@ const Index = () => {
               wins={28}
               onAddFunds={handleAddFunds}
               onTonDeposit={() => alert("TON deposit")}
-              onTelegramDeposit={() => alert("Telegram deposit")}
+              onTelegramDeposit={openTelegramInvoice}
               transactions={[]}
             />
           </div>
