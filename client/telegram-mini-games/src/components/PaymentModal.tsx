@@ -160,6 +160,26 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   };
 
+  const openTelegramInvoice = () => {
+    const tgWebApp = window.Telegram && window.Telegram.WebApp ? (window.Telegram.WebApp as any) : null;
+    if (tgWebApp && tgWebApp.openInvoice) {
+      tgWebApp.openInvoice({
+        slug: '', // если есть slug, иначе можно payload
+        invoice: {
+          provider_token: 'test', // для теста, в реальности сюда приходит invoice от бэка
+          start_parameter: 'test-pay',
+          currency: 'RUB',
+          prices: [{ label: 'Тестовый товар', amount: 10000 }],
+          title: 'Тестовая оплата',
+          description: 'Покупка тестового товара',
+          payload: 'test-payload',
+        }
+      });
+    } else {
+      alert('Оплата доступна только в Telegram Mini App');
+    }
+  };
+
   const presetAmounts = [100, 500, 1000, 2500, 5000, 10000];
 
   return (
@@ -312,6 +332,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 Открыть ссылку для оплаты
               </Button>
             )}
+            <Button onClick={openTelegramInvoice}>Оплатить картой через Telegram</Button>
           </div>
 
           {/* Информация */}

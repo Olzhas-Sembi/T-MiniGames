@@ -9,6 +9,7 @@ import aiohttp
 import os
 from typing import Optional
 from dotenv import load_dotenv
+from telebot.types import LabeledPrice
 
 load_dotenv()
 
