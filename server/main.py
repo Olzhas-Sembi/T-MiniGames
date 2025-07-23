@@ -15,7 +15,7 @@ from server.models import (
 )
 from server.room_manager import RoomManager
 from server.telegram_news_service import telegram_news_service
-from server.database_sqlite import get_db, User, GameRoom, Transaction, SessionLocal, SessionLocal
+from server.database_sqlite import get_db, User, GameRoom, Transaction, SessionLocal
 from server.config import settings
 from server.game_api import router as game_router
 from server.games.database_dice import dice_router
