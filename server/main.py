@@ -34,15 +34,14 @@ app = FastAPI(title="Telegram Mini Games API", version="1.0.0")
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS + [
-        "http://localhost:5174", 
+    allow_origins=[
+        "http://localhost:5174",
         "http://localhost:5173",
         "http://localhost:8080",
         "http://localhost:8081",
-        "https://t-mini-games.vercel.app/",
-        "https://db8cda64834f.ngrok-free.app/",  # Production frontend
-        "https://t.me",  # Telegram domain
-        "*"  # Allow all origins for deployment
+        "https://t-mini-games.vercel.app",
+        "https://t-minigames.onrender.com",
+        "https://t.me"
     ],
     allow_credentials=True,
     allow_methods=["*"],
