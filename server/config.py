@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
     TELEGRAM_WEBAPP_URL: str = os.getenv("TELEGRAM_WEBAPP_URL", "")
     TELEGRAM_WEBHOOK_SECRET: str = os.getenv("TELEGRAM_WEBHOOK_SECRET", "")
+    TELEGRAM_WEBHOOK_URL: str = os.getenv("TELEGRAM_WEBHOOK_URL", "")
+    TELEGRAM_PAYMENT_PROVIDER_TOKEN: str = os.getenv("TELEGRAM_PAYMENT_PROVIDER_TOKEN", "")
     
     # WebApp
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here")

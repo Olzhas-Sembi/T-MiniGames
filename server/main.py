@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import json
@@ -39,8 +39,8 @@ app.add_middleware(
         "http://localhost:5173",
         "http://localhost:8080",
         "http://localhost:8081",
-        "https://t-mini-games-nsq3kbzi2-beksh0800s-projects.vercel.app/",
-        "https://t-mini-games-mdxyoc3dx-beksh0800s-projects.vercel.app",  # Production frontend
+        "https://t-mini-games.vercel.app/",
+        "https://db8cda64834f.ngrok-free.app/",  # Production frontend
         "https://t.me",  # Telegram domain
         "*"  # Allow all origins for deployment
     ],
@@ -70,6 +70,33 @@ app.include_router(nft_api_router)
 @app.get("/")
 async def root():
     return {"message": "Telegram Mini Games API", "status": "running", "database": "connected"}
+
+# Telegram Webhook
+@app.post("/webhook/telegram")
+async def telegram_webhook(request: Request):
+    """
+    Webhook для Telegram бота
+    """
+    try:
+        # Проверяем secret token если установлен
+        if settings.TELEGRAM_WEBHOOK_SECRET:
+            secret_token = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
+            if secret_token != settings.TELEGRAM_WEBHOOK_SECRET:
+                logger.warning(f"Неверный secret token в webhook")
+                raise HTTPException(status_code=403, detail="Forbidden")
+        
+        # Получаем данные обновления
+        data = await request.json()
+        logger.info(f"Получено обновление от Telegram: {data}")
+        
+        # TODO: Обработка обновлений через aiogram
+        # Пока что просто логируем
+        
+        return {"ok": True}
+        
+    except Exception as e:
+        logger.error(f"Ошибка обработки Telegram webhook: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 # API для работы с пользователями
 @app.get("/api/users/{telegram_id}")

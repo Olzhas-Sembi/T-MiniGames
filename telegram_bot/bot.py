@@ -14,14 +14,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Конфигурация
-BOT_TOKEN = os.getenv("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
-WEBHOOK_HOST = os.getenv("WEBHOOK_HOST", "https://your-domain.com")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "7595580643:AAHpgvzaGErk8IiFUyEIQPhmo35qHaiUdb8")
+WEBHOOK_HOST = os.getenv("WEBHOOK_HOST", "https://t-mini-games.vercel.app/")
 WEBHOOK_PATH = f"/webhook/{BOT_TOKEN}"
 WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 
 # URL вашего фронтенда
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://your-app.vercel.app")
-API_URL = os.getenv("API_URL", "https://your-api.railway.app")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://t-mini-games.vercel.app/")
+API_URL = os.getenv("API_URL", "https://t-minigames.onrender.com/api/")
 
 # Создание бота и диспетчера
 bot = Bot(token=BOT_TOKEN)

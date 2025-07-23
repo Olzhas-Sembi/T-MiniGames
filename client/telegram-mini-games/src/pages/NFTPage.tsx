@@ -5,7 +5,7 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import NFTCollection from '../components/NFTCollection';
 import PaymentModal from '../components/PaymentModal';
-import { TelegramService } from '../services/telegramService';
+import telegramService from '../services/telegramService';
 import { baseURL } from '../config';
 
 const NFTPage: React.FC = () => {
@@ -21,7 +21,6 @@ const NFTPage: React.FC = () => {
   const initializePage = async () => {
     try {
       // Получаем данные пользователя из Telegram
-      const telegramService = new TelegramService();
       const userData = telegramService.getUser();
       setUser(userData);
 

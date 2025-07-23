@@ -18,10 +18,19 @@ const App = () => {
   const [isTelegram, setIsTelegram] = useState<boolean | null>(null);
 
   useEffect(() => {
-    setIsTelegram(TelegramService.isInTelegram());
-    if (TelegramService.isInTelegram()) {
-      TelegramService.init();
+    let attempts = 0;
+    function checkTelegram() {
+      if (TelegramService.isInTelegram()) {
+        setIsTelegram(true);
+        TelegramService.init();
+      } else if (attempts < 10) {
+        attempts++;
+        setTimeout(checkTelegram, 200);
+      } else {
+        setIsTelegram(false);
+      }
     }
+    checkTelegram();
   }, []);
 
   if (isTelegram === false) {
