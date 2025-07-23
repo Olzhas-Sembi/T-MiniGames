@@ -1,4 +1,31 @@
-aiogram==3.13.1
-aiohttp==3.10.10
-python-dotenv==1.0.1
-asyncio
+fastapi>=0.104.0,<1.0.0
+uvicorn[standard]>=0.24.0,<1.0.0
+pydantic>=2.4.0,<3.0.0
+python-multipart>=0.0.6
+websockets>=11.0.0,<13.0.0
+aiogram>=3.0.0,<4.0.0
+aiohttp>=3.8.0,<4.0.0
+python-dotenv>=1.0.0
+feedparser>=6.0.0
+
+# TON и платежная интеграция
+pytoniq>=0.1.31
+pytoniq-core>=0.1.31
+tonsdk>=1.0.7
+httpx>=0.24.0
+
+# Криптография для NFT
+cryptography>=41.0.0
+Pillow>=10.0.0
+qrcode>=7.4.0
+
+# Telegram Bot API для Stars
+python-telegram-bot>=20.6
+
+# База данных
+sqlalchemy>=2.0.21
+alembic>=1.12.0
+psycopg2-binary>=2.9.7
+
+# Redis для кэширования
+redis>=4.6.0

@@ -1,60 +1,54 @@
-"""
-Конфигурация приложения
-"""
-import os
 from pydantic_settings import BaseSettings
-
+from pydantic import Field
 
 class Settings(BaseSettings):
     # База данных
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", 
-        "sqlite:///./test_minigames.db"  # Временно используем SQLite для тестирования
-    )
-    
-    # Redis (для кэширования и очередей)
-    REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    DATABASE_URL: str = Field(..., env="DATABASE_URL")
+
+    # Redis
+    REDIS_URL: str = Field("redis://localhost:6379/0", env="REDIS_URL")
     
     # Telegram Bot
-    TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
-    TELEGRAM_WEBAPP_URL: str = os.getenv("TELEGRAM_WEBAPP_URL", "")
-    TELEGRAM_WEBHOOK_SECRET: str = os.getenv("TELEGRAM_WEBHOOK_SECRET", "")
-    TELEGRAM_WEBHOOK_URL: str = os.getenv("TELEGRAM_WEBHOOK_URL", "")
-    TELEGRAM_PAYMENT_PROVIDER_TOKEN: str = os.getenv("TELEGRAM_PAYMENT_PROVIDER_TOKEN", "")
-    
+    TELEGRAM_BOT_TOKEN: str = Field(..., env="TELEGRAM_BOT_TOKEN")
+    TELEGRAM_WEBAPP_URL: str = Field(..., env="TELEGRAM_WEBAPP_URL")
+    TELEGRAM_WEBHOOK_SECRET: str = Field("", env="TELEGRAM_WEBHOOK_SECRET")
+    TELEGRAM_WEBHOOK_URL: str = Field("", env="TELEGRAM_WEBHOOK_URL")
+    TELEGRAM_PAYMENT_PROVIDER_TOKEN: str = Field(..., env="TELEGRAM_PAYMENT_PROVIDER_TOKEN")
+
     # WebApp
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here")
-    
-    # API Keys
-    NEWS_API_KEY: str = os.getenv("NEWS_API_KEY", "")
-    
-    # TON Integration
-    TON_WALLET_ADDRESS: str = os.getenv("TON_WALLET_ADDRESS", "")
-    TON_WALLET_SEED: str = os.getenv("TON_WALLET_SEED", "")
-    TON_API_KEY: str = os.getenv("TON_API_KEY", "")
-    TON_TESTNET: bool = os.getenv("TON_TESTNET", "true").lower() == "true"
-    TON_MANIFEST_URL: str = os.getenv("TON_MANIFEST_URL", "https://your-domain.com/tonconnect-manifest.json")
-    
+    SECRET_KEY: str = Field(..., env="SECRET_KEY")
+
+    # API
+    NEWS_API_KEY: str = Field(..., env="NEWS_API_KEY")
+
+    # TON
+    TON_WALLET_ADDRESS: str = Field(..., env="TON_WALLET_ADDRESS")
+    TON_WALLET_SEED: str = Field(..., env="TON_WALLET_SEED")
+    TON_API_KEY: str = Field("", env="TON_API_KEY")
+    TON_TESTNET: bool = Field(True, env="TON_TESTNET")
+    TON_MANIFEST_URL: str = Field("https://your-domain.com/tonconnect-manifest.json", env="TON_MANIFEST_URL")
+
     # Платежная система
-    STARS_TO_TON_RATE: float = float(os.getenv("STARS_TO_TON_RATE", "0.001"))  # 1000 звезд = 1 TON
-    MIN_WITHDRAWAL_STARS: int = int(os.getenv("MIN_WITHDRAWAL_STARS", "1000"))
-    MAX_WITHDRAWAL_STARS: int = int(os.getenv("MAX_WITHDRAWAL_STARS", "100000"))
-    
-    # NFT система
-    NFT_IMAGE_BASE_URL: str = os.getenv("NFT_IMAGE_BASE_URL", "https://your-cdn.com/nft/")
-    DEFAULT_CASE_PRICE: int = int(os.getenv("DEFAULT_CASE_PRICE", "100"))
-    
+    STARS_TO_TON_RATE: float = Field(0.001, env="STARS_TO_TON_RATE")
+    MIN_WITHDRAWAL_STARS: int = Field(1000, env="MIN_WITHDRAWAL_STARS")
+    MAX_WITHDRAWAL_STARS: int = Field(100000, env="MAX_WITHDRAWAL_STARS")
+
+    # NFT
+    NFT_IMAGE_BASE_URL: str = Field("https://your-cdn.com/nft/", env="NFT_IMAGE_BASE_URL")
+    DEFAULT_CASE_PRICE: int = Field(100, env="DEFAULT_CASE_PRICE")
+
     # CORS
     ALLOWED_ORIGINS: list[str] = [
-        "http://localhost:5173", 
+        "http://localhost:5173",
         "http://localhost:5174",
-        "https://your-domain.com",
+        "http://localhost:8080",
+        "http://localhost:8081",
+        "https://t-mini-games.vercel.app/",
         "https://t.me"
     ]
-    
+
     class Config:
         env_file = ".env"
 
 
-# Создаем единственный экземпляр настроек
 settings = Settings()
