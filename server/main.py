@@ -29,7 +29,11 @@ from server.api.nft import router as nft_api_router
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Telegram Mini Games API", version="1.0.0")
+app = FastAPI(
+    title="Telegram Mini Games API", 
+    version="1.0.0",
+    redirect_slashes=False  # Отключаем автоматические редиректы!
+)
 
 # CORS middleware
 app.add_middleware(
@@ -43,7 +47,15 @@ app.add_middleware(
 # Middleware для предотвращения редиректов
 @app.middleware("http")
 async def prevent_redirect_middleware(request: Request, call_next):
+    # Логируем все входящие запросы
+    logger.info(f"Incoming request: {request.method} {request.url}")
+    logger.info(f"Headers: {dict(request.headers)}")
+    
     response = await call_next(request)
+    
+    # Логируем ответ
+    logger.info(f"Response status: {response.status_code}")
+    logger.info(f"Response headers: {dict(response.headers)}")
     
     # Добавляем CORS заголовки вручную для всех ответов
     response.headers["Access-Control-Allow-Origin"] = "*"
@@ -73,6 +85,15 @@ app.include_router(nft_api_router)
 @app.get("/")
 async def root():
     return {"message": "Telegram Mini Games API", "status": "running", "database": "connected"}
+
+@app.get("/cors-test")
+async def cors_test():
+    """Endpoint для тестирования CORS"""
+    return {
+        "message": "CORS test successful", 
+        "timestamp": "2025-01-06",
+        "headers_added": True
+    }
 
 @app.options("/api/{full_path:path}")
 async def options_handler():
