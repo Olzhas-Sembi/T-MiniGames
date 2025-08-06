@@ -34,26 +34,23 @@ app = FastAPI(title="Telegram Mini Games API", version="1.0.0")
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5174",
-        "http://localhost:5173",
-        "http://localhost:8080",
-        "http://localhost:8081",
-        "https://t-mini-games.vercel.app",
-        "https://t-minigames.onrender.com",
-        "https://t.me",
-        "https://rustembekov.github.io",
-        "https://rustembekov.github.io/GiftNews",
-        "https://rustembekov.github.io/GiftNews/",
-        "https://olzhas-sembi.github.io",
-        "https://olzhas-sembi.github.io/T-MiniGames",
-        "https://olzhas-sembi.github.io/T-MiniGames/"
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],  # Временно разрешаем всё для диагностики
+    allow_credentials=False,  # При * нужно False
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
-    expose_headers=["*"]
 )
+
+# Middleware для предотвращения редиректов
+@app.middleware("http")
+async def prevent_redirect_middleware(request: Request, call_next):
+    response = await call_next(request)
+    
+    # Добавляем CORS заголовки вручную для всех ответов
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    
+    return response
 
 # Подключаем роутеры
 app.include_router(payments_router)  # Платежная система
@@ -454,6 +451,7 @@ async def get_news(category: str = "all", limit: int = 50):
         raise HTTPException(status_code=500, detail="Failed to fetch news")
 
 @app.get("/api/news/sources")
+@app.get("/api/news/sources/")  # Добавляем версию со слешем
 async def get_news_sources():
     """Получить список всех источников новостей"""
     try:
@@ -488,6 +486,7 @@ async def refresh_news_cache():
         raise HTTPException(status_code=500, detail="Failed to refresh cache")
 
 @app.get("/api/news/channels")
+@app.get("/api/news/channels/")  # Добавляем версию со слешем
 async def get_channels():
     """Получить информацию о всех Telegram каналах"""
     try:
@@ -524,6 +523,7 @@ async def get_channel_posts(username: str, limit: int = 20):
         raise HTTPException(status_code=500, detail="Failed to fetch channel posts")
 
 @app.get("/api/news/categories")
+@app.get("/api/news/categories/")  # Добавляем версию со слешем
 async def get_news_categories():
     """Получить список категорий новостей согласно ТЗ"""
     categories = [
