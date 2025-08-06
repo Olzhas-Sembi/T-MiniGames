@@ -43,7 +43,12 @@ app.add_middleware(
         "https://t-minigames.onrender.com",
         "https://t.me",
         "https://rustembekov.github.io",
-        "https://rustembekov.github.io/GiftNews/"
+        "https://rustembekov.github.io/GiftNews",
+        "https://rustembekov.github.io/GiftNews/",
+        "https://olzhas-sembi.github.io",
+        "https://olzhas-sembi.github.io/T-MiniGames",
+        "https://olzhas-sembi.github.io/T-MiniGames/",
+        "*"  # Временно для тестирования, потом уберите
     ],
     allow_credentials=True,
     allow_methods=["*"],
