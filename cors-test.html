@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 CORS Test для T-MiniGames API</h1>
+        
+        <div class="test-section info">
+            <h3>ℹ️ Информация</h3>
+            <p><strong>Текущий домен:</strong> <span id="currentOrigin"></span></p>
+            <p><strong>Тестируемый API:</strong> https://t-minigames.onrender.com</p>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Тесты API</h3>
+            <button onclick="testAPI('/')">Тест корневого эндпоинта</button>
+            <button onclick="testAPI('/health')">Тест health check</button>
+            <button onclick="testAPI('/api/news?limit=5')">Тест новостей</button>
+            <button onclick="testAPI('/api/news/categories')">Тест категорий</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Результаты тестов</h3>
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        // Отображаем текущий origin
+        document.getElementById('currentOrigin').textContent = window.location.origin;
+
+        async function testAPI(endpoint) {
+            const resultsDiv = document.getElementById('results');
+            const apiUrl = `https://t-minigames.onrender.com${endpoint}`;
+            
+            // Добавляем информацию о начале теста
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test-section info';
+            testDiv.innerHTML = `
+                <h4>🔄 Тестируем: ${endpoint}</h4>
+                <p>URL: ${apiUrl}</p>
+                <p>Origin: ${window.location.origin}</p>
+                <p>Статус: Выполняется...</p>
+            `;
+            resultsDiv.appendChild(testDiv);
+
+            try {
+                const startTime = Date.now();
+                
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const endTime = Date.now();
+                const responseTime = endTime - startTime;
+
+                let responseText = '';
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    responseText = JSON.stringify(data, null, 2);
+                } else {
+                    responseText = await response.text();
+                }
+
+                // Сбор CORS заголовков
+                const corsHeaders = {};
+                for (let [key, value] of response.headers.entries()) {
+                    if (key.toLowerCase().startsWith('access-control')) {
+                        corsHeaders[key] = value;
+                    }
+                }
+
+                testDiv.className = response.ok ? 'test-section success' : 'test-section error';
+                testDiv.innerHTML = `
+                    <h4>${response.ok ? '✅' : '❌'} ${endpoint}</h4>
+                    <p><strong>Статус:</strong> ${response.status} ${response.statusText}</p>
+                    <p><strong>Время ответа:</strong> ${responseTime}ms</p>
+                    <p><strong>CORS заголовки:</strong></p>
+                    <pre>${JSON.stringify(corsHeaders, null, 2)}</pre>
+                    <p><strong>Ответ:</strong></p>
+                    <pre>${responseText.length > 500 ? responseText.substring(0, 500) + '...' : responseText}</pre>
+                `;
+
+            } catch (error) {
+                testDiv.className = 'test-section error';
+                testDiv.innerHTML = `
+                    <h4>❌ ${endpoint}</h4>
+                    <p><strong>Ошибка:</strong> ${error.message}</p>
+                    <p><strong>Тип ошибки:</strong> ${error.name}</p>
+                    <pre>${error.stack}</pre>
+                `;
+            }
+        }
+
+        // Автоматический тест при загрузке страницы
+        window.addEventListener('load', function() {
+            console.log('🚀 CORS Tester loaded');
+            console.log('Current origin:', window.location.origin);
+        });
+    </script>
+</body>
+</html>

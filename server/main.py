@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends, Request
+from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import json
@@ -25,60 +26,63 @@ from server.games.database_rps import rps_router
 from server.api.payments import router as payments_router, nft_router
 from server.api.nft import router as nft_api_router
 
-# Настройка логгера
+# Настройка логирования
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("app")
+logger = logging.getLogger(__name__)
 
-app = FastAPI()
+app = FastAPI(title="Telegram Mini Games API", version="1.0.0")
 
-# Правильное использование CORS middleware
+# Логируем CORS настройки для отладки
+logger.info(f"Configuring CORS with origins: {settings.ALLOWED_ORIGINS}")
+
+# CORS middleware - используем настройки из config.py
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5174",
-        "http://localhost:5173",
-        "http://localhost:8080",
-        "http://localhost:8081",
-        "https://t-mini-games.vercel.app",
-        "https://t-minigames.onrender.com",
-        "https://t.me",
-        "https://rustembekov.github.io",  # <-- важно: не пишем /GiftNews/ здесь
-    ],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    max_age=3600,
 )
 
-# Middleware для логирования
 @app.middleware("http")
-async def log_requests_middleware(request: Request, call_next):
-    logger.info(f"Incoming request: {request.method} {request.url}")
-    logger.info(f"Headers: {dict(request.headers)}")
+async def additional_cors_middleware(request: Request, call_next):
+    """Дополнительный CORS middleware для исправления проблем"""
+    origin = request.headers.get("origin")
+    
+    # Обрабатываем OPTIONS запрос
+    if request.method == "OPTIONS":
+        if origin in settings.ALLOWED_ORIGINS:
+            return Response(
+                status_code=200,
+                headers={
+                    "Access-Control-Allow-Origin": origin,
+                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                    "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Allow-Credentials": "true",
+                    "Access-Control-Max-Age": "3600",
+                }
+            )
     
     response = await call_next(request)
     
-    logger.info(f"Response status: {response.status_code}")
-    logger.info(f"Response headers: {dict(response.headers)}")
+    # Добавляем CORS заголовки к обычным ответам
+    if origin in settings.ALLOWED_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
     
     return response
-
-# Подключаем роутеры
-app.include_router(payments_router)  # Платежная система
-app.include_router(nft_router)       # NFT система
-app.include_router(game_router)      # Игровые API
-app.include_router(dice_router)      # Кубики
-app.include_router(rps_router)       # Камень-ножницы-бумага
 
 # Глобальный менеджер комнат
 room_manager = RoomManager()
 
-# Подключение роутеров
-app.include_router(game_router)
-app.include_router(dice_router)
-app.include_router(rps_router)
-app.include_router(payments_router)
-app.include_router(nft_router)
-app.include_router(nft_api_router)
+# Подключение роутеров (без дублирования)
+app.include_router(payments_router)  # Платежная система
+app.include_router(nft_router)       # NFT система
+app.include_router(nft_api_router)   # NFT API
+app.include_router(game_router)      # Игровые API
+app.include_router(dice_router)      # Кубики
+app.include_router(rps_router)       # Камень-ножницы-бумага
 
 @app.get("/")
 async def root():
