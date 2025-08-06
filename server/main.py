@@ -42,6 +42,7 @@ app.add_middleware(
         "https://t-mini-games.vercel.app",
         "https://t-minigames.onrender.com",
         "https://t.me",
+        "https://rustembekov.github.io",
         "https://rustembekov.github.io/GiftNews/"
     ],
     allow_credentials=True,

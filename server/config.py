@@ -39,12 +39,15 @@ class Settings(BaseSettings):
 
     # CORS
     ALLOWED_ORIGINS: list[str] = [
-        "http://localhost:5173",
         "http://localhost:5174",
+        "http://localhost:5173",
         "http://localhost:8080",
         "http://localhost:8081",
-        "https://t-mini-games.vercel.app/",
-        "https://t.me"
+        "https://t-mini-games.vercel.app",
+        "https://t-minigames.onrender.com",
+        "https://t.me",
+        "https://rustembekov.github.io",
+        "https://rustembekov.github.io/GiftNews/"
     ]
 
     class Config:
