@@ -25,42 +25,40 @@ from server.games.database_rps import rps_router
 from server.api.payments import router as payments_router, nft_router
 from server.api.nft import router as nft_api_router
 
-# Настройка логирования
+# Настройка логгера
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("app")
 
-app = FastAPI(
-    title="Telegram Mini Games API", 
-    version="1.0.0",
-    redirect_slashes=False  # Отключаем автоматические редиректы!
-)
+app = FastAPI()
 
-# CORS middleware
+# Правильное использование CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Временно разрешаем всё для диагностики
-    allow_credentials=False,  # При * нужно False
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_origins=[
+        "http://localhost:5174",
+        "http://localhost:5173",
+        "http://localhost:8080",
+        "http://localhost:8081",
+        "https://t-mini-games.vercel.app",
+        "https://t-minigames.onrender.com",
+        "https://t.me",
+        "https://rustembekov.github.io",  # <-- важно: не пишем /GiftNews/ здесь
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Middleware для предотвращения редиректов
+# Middleware для логирования
 @app.middleware("http")
-async def prevent_redirect_middleware(request: Request, call_next):
-    # Логируем все входящие запросы
+async def log_requests_middleware(request: Request, call_next):
     logger.info(f"Incoming request: {request.method} {request.url}")
     logger.info(f"Headers: {dict(request.headers)}")
     
     response = await call_next(request)
     
-    # Логируем ответ
     logger.info(f"Response status: {response.status_code}")
     logger.info(f"Response headers: {dict(response.headers)}")
-    
-    # Добавляем CORS заголовки вручную для всех ответов
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "*"
     
     return response
 
@@ -85,20 +83,6 @@ app.include_router(nft_api_router)
 @app.get("/")
 async def root():
     return {"message": "Telegram Mini Games API", "status": "running", "database": "connected"}
-
-@app.get("/cors-test")
-async def cors_test():
-    """Endpoint для тестирования CORS"""
-    return {
-        "message": "CORS test successful", 
-        "timestamp": "2025-01-06",
-        "headers_added": True
-    }
-
-@app.options("/api/{full_path:path}")
-async def options_handler():
-    """Handle preflight OPTIONS requests"""
-    return {}
 
 # Telegram Webhook
 @app.post("/webhook/telegram")
@@ -445,7 +429,6 @@ async def get_room_invite_info(room_id: str):
 # News API Endpoints
 
 @app.get("/api/news")
-@app.get("/api/news/")  # Добавляем версию со слешем
 async def get_news(category: str = "all", limit: int = 50):
     """
     Получить новости из всех источников (Telegram + RSS).
@@ -472,7 +455,6 @@ async def get_news(category: str = "all", limit: int = 50):
         raise HTTPException(status_code=500, detail="Failed to fetch news")
 
 @app.get("/api/news/sources")
-@app.get("/api/news/sources/")  # Добавляем версию со слешем
 async def get_news_sources():
     """Получить список всех источников новостей"""
     try:
@@ -507,7 +489,6 @@ async def refresh_news_cache():
         raise HTTPException(status_code=500, detail="Failed to refresh cache")
 
 @app.get("/api/news/channels")
-@app.get("/api/news/channels/")  # Добавляем версию со слешем
 async def get_channels():
     """Получить информацию о всех Telegram каналах"""
     try:
@@ -544,7 +525,6 @@ async def get_channel_posts(username: str, limit: int = 20):
         raise HTTPException(status_code=500, detail="Failed to fetch channel posts")
 
 @app.get("/api/news/categories")
-@app.get("/api/news/categories/")  # Добавляем версию со слешем
 async def get_news_categories():
     """Получить список категорий новостей согласно ТЗ"""
     categories = [
