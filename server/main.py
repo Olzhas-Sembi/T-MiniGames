@@ -47,12 +47,12 @@ app.add_middleware(
         "https://rustembekov.github.io/GiftNews/",
         "https://olzhas-sembi.github.io",
         "https://olzhas-sembi.github.io/T-MiniGames",
-        "https://olzhas-sembi.github.io/T-MiniGames/",
-        "*"  # Временно для тестирования, потом уберите
+        "https://olzhas-sembi.github.io/T-MiniGames/"
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Подключаем роутеры
@@ -76,6 +76,11 @@ app.include_router(nft_api_router)
 @app.get("/")
 async def root():
     return {"message": "Telegram Mini Games API", "status": "running", "database": "connected"}
+
+@app.options("/api/{full_path:path}")
+async def options_handler():
+    """Handle preflight OPTIONS requests"""
+    return {}
 
 # Telegram Webhook
 @app.post("/webhook/telegram")
@@ -422,6 +427,7 @@ async def get_room_invite_info(room_id: str):
 # News API Endpoints
 
 @app.get("/api/news")
+@app.get("/api/news/")  # Добавляем версию со слешем
 async def get_news(category: str = "all", limit: int = 50):
     """
     Получить новости из всех источников (Telegram + RSS).
