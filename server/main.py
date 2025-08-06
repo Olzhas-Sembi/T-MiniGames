@@ -41,12 +41,14 @@ app.add_middleware(
         "http://localhost:8081",
         "https://t-mini-games.vercel.app",
         "https://t-minigames.onrender.com",
-        "https://t.me"
+        "https://t.me",
+        "https://yourusername.github.io"  # ← Добавь это
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Подключаем роутеры
 app.include_router(payments_router)  # Платежная система
