@@ -35,41 +35,55 @@ app = FastAPI(title="Telegram Mini Games API", version="1.0.0")
 # Логируем CORS настройки для отладки
 logger.info(f"Configuring CORS with origins: {settings.ALLOWED_ORIGINS}")
 
-# CORS middleware - используем настройки из config.py
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
-    max_age=3600,
-)
+# Убираем стандартный CORS middleware - он конфликтует с нашим кастомным
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=settings.ALLOWED_ORIGINS,
+#     allow_credentials=True,
+#     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+#     allow_headers=["*"],
+#     max_age=3600,
+# )
 
 @app.middleware("http")
-async def additional_cors_middleware(request: Request, call_next):
-    """Дополнительный CORS middleware для исправления проблем"""
+async def cors_middleware(request: Request, call_next):
+    """Кастомный CORS middleware для полного контроля"""
     origin = request.headers.get("origin")
+    logger.info(f"Request {request.method} {request.url.path} from origin: {origin}")
     
-    # Обрабатываем OPTIONS запрос
+    # Проверяем, что origin разрешен
+    origin_allowed = origin in settings.ALLOWED_ORIGINS if origin else False
+    
+    # Обрабатываем preflight OPTIONS запрос
     if request.method == "OPTIONS":
-        if origin in settings.ALLOWED_ORIGINS:
+        if origin_allowed:
+            logger.info(f"Allowing OPTIONS for origin: {origin}")
             return Response(
                 status_code=200,
                 headers={
                     "Access-Control-Allow-Origin": origin,
-                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH",
                     "Access-Control-Allow-Headers": "*",
                     "Access-Control-Allow-Credentials": "true",
-                    "Access-Control-Max-Age": "3600",
+                    "Access-Control-Max-Age": "86400",  # 24 часа
+                    "Vary": "Origin",
                 }
             )
+        else:
+            logger.warning(f"Rejecting OPTIONS for origin: {origin}")
+            return Response(status_code=403)
     
+    # Обрабатываем обычный запрос
     response = await call_next(request)
     
-    # Добавляем CORS заголовки к обычным ответам
-    if origin in settings.ALLOWED_ORIGINS:
+    # Добавляем CORS заголовки к ответу
+    if origin_allowed:
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Vary"] = "Origin"
+        logger.info(f"Added CORS headers for origin: {origin}")
+    else:
+        logger.warning(f"Origin not allowed: {origin}")
     
     return response
 
