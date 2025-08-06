@@ -41,7 +41,8 @@ app.add_middleware(
         "http://localhost:8081",
         "https://t-mini-games.vercel.app",
         "https://t-minigames.onrender.com",
-        "https://t.me"
+        "https://t.me",
+        "https://rustembekov.github.io"
     ],
     allow_credentials=True,
     allow_methods=["*"],
